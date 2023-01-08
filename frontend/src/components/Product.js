@@ -1,9 +1,10 @@
 import React from 'react'
 import { Card } from 'react-bootstrap'
+import Rating from './Rating'
 
 function Product(props) {
     const {product}=props
-    console.log(product._id)
+    // console.log(product._id,"----",product.rating)
   return (
     <Card className='my-3 py-3 rounded'>
         <a href={`/products/${product._id}`}>
@@ -14,13 +15,13 @@ function Product(props) {
                 <Card.Title>{product.name}</Card.Title>
             </a>
             <Card.Text as="div">
-            <div className='my-3'>
-                {product.rating}  是依据{product.numReviews}条评价数来计算 
-            </div></Card.Text>
+                <Rating value={product.rating} text={`${product.numReviews}条评论`} />
+            </Card.Text>
             <Card.Text as="h3">￥{product.price}</Card.Text>
         </Card.Body>
     </Card>
   )
 }
+
 
 export default Product
