@@ -138,3 +138,37 @@ Rating.propTypes={  // 限制参数类型
 export default Rating
 ```
 
+## React路由
+
+```jsx
+npm i react-router-dom react-router-bootstrap
+
+// routerv6 回顾
+// 路由注册
+import {BrowserRouter as Router,Route,Routes} from "react-router-dom"  // 引入
+
+// 整体使用BrowserRouter嵌套，Route外部使用Routes嵌套
+<Router>
+    <Routes>
+    	<Route path="/" element={<HomeView/>} />
+    	<Route path="/products/:id" element={<ProductView/>} />
+	</Routes>  
+</Router>
+
+// 路由跳转 Link和NavLink
+<Link to={`/products/${product._id}`}>
+    <Card.Img src={product.image} variant="top" />
+</Link>
+
+
+// router-bootstrap使用
+// 将Header组件中之前使用href进行跳转的路由使用LinkContainer重构
+// 重构前
+<Nav.Link href="/login"><i className='fas fa-user'/> Login</Nav.Link>
+// 重构后
+<LinkContainer to="/login">
+    <Nav.Link><i className='fas fa-user'/> Login</Nav.Link>
+</LinkContainer>
+
+```
+
