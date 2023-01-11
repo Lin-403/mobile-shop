@@ -172,3 +172,14 @@ import {BrowserRouter as Router,Route,Routes} from "react-router-dom"  // 引入
 
 ```
 
+## 产品详情界面
+
+```jsx
+// 路由跳转使用Link
+<Link className='btn btn-dark my-3' to="/">返回主页</Link>
+
+// 编程式 获取参数
+const params=useParams();
+console.log(params.id) // 获取产品id
+```
+
