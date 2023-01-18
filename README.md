@@ -183,3 +183,91 @@ const params=useParams();
 console.log(params.id) // 获取产品id
 ```
 
+# 后端搭建
+
+## express初步搭建
+
+```js
+npm init
+npm i express
+
+// 修改启动脚本
+"scripts": {
+    "start": "nodemon backend/server"
+},
+      
+npm start启动项目
+```
+
+## 初步请求
+
+```js
+npm i axios
+
+// 前端端口号3000，后端端口号8000，出现跨域问题
+// 设置代理 proxy解决
+// 前端项目文件package.json文件中
+"proxy":"http://127.0.0.1:8000"
+
+
+// 安装concurrently，可以同时运行多个脚本
+"scripts": {
+  "start": "node backend/server",
+  "server": "nodemon backend/server",
+  "client": "npm start --prefix frontend",
+  "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+      
+// 运行npm run dev  
+
+```
+
+## 设置环境变量
+
+```js
+// dotenv模块 构建环境变量文件
+npm i dotenv
+
+//创建.env配置文件，写入配置信息
+NODE_ENV=development
+# 开发模式
+PORT=8000
+
+// 外部使用
+const dotenv=require("dotenv")
+dotenv.config()
+const PORT=process.env.PORT || 8000
+```
+
+## 前后端模块化统一
+
+ESModule和CommonJS区别
+
+```
+1.语法上：
+CommonJS
+导入：require
+导出：module.exports
+ESModule
+导入：import
+导出：export
+
+2.用法
+CommonJS：require（）同步加载引入的，js是单线程，会造成阻塞
+ESModule：import异步引入，不会阻塞
+nodeJS默认使用的是CommonJS规范
+浏览器使用的是ESModule异步加载引入，防止阻塞页面渲染而出现卡顿现象
+ 
+3.值的处理
+CommonJS ：对值拷贝
+ESModule：对值引用
+```
+
+二者转换方法：
+
+```
+nodeJS下【.js文件】默认使用CommonJS，如果想要使用ES6新增得ESModule需要采用【.mjs】的文件后缀名。
+如果不想修改后缀名，在【package.json】文件里添加【{ "type" : "module" }】
+如果修改了json文件，我们想要使用【CommonJS模块】，创建文件后缀名为【.cjs】
+```
+
