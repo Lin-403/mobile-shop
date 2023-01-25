@@ -271,3 +271,235 @@ nodeJS下【.js文件】默认使用CommonJS，如果想要使用ES6新增得ESM
 如果修改了json文件，我们想要使用【CommonJS模块】，创建文件后缀名为【.cjs】
 ```
 
+# MongoDb数据库搭建
+
+## 连接数据库
+
+```js
+npm i mongoose
+
+// db.js
+import mongoose from "mongoose";
+// 连接数据库
+const connectDB=async()=>{
+    try{
+        const conn=await mongoose.connect(process.env.DB_URI,{
+                useUnifiedTopology:true,
+                useNewUrlParser:true,
+                // useCreateIndex:false,
+            })
+        console.log(`Mongodb connected with server : ${conn.connection.host}`)
+    }
+    catch(error){
+        console.log(`Error:${err or.message}`)
+        process.exit(1)
+    }
+}
+export default connectDB;
+```
+
+## Colors工具引入
+
+可以给打印在控制台的文字添加样式
+
+```js
+console.log(`服务器在${process.env.NODE_ENV}模式下${PORT}端口运行`.cyan.underline)
+// .cyan青色  .underline下划线
+
+```
+
+## 创建数据模型
+
+```js
+// 产品
+const productSchema=mongoose.Schema({
+    user:{
+        // 关联到User表，外键id
+        type:mongoose.Schema.Types.ObjectId,
+        required:true,
+        ref:"User"
+    },
+    name:{
+        type:String,
+        required:true,
+    },
+    image:{
+        type:String,
+        required:true,
+    },
+    brand:{
+        type:String,
+        required:true,
+    },
+    category:{
+        type:String,
+        required:true,
+    },
+    description:{
+        type:String,
+        required:true,
+    },
+    rating:{
+        type:Number,
+        required:true,
+    },
+    reviews:[reviewSchema],
+    numReviews:{
+        type:Number,
+        required:true,
+    },
+    price:{
+        type:Number,
+        required:true,
+        default:0,
+    },
+    countInStock:{
+        type:Number,
+        required:true,
+        default:0,
+    },
+    
+},{
+    timestamps:true
+})
+
+```
+
+##    创建样本数据
+
+使用bcryptJS进行数据加密，
+
+（与bcrypt区别：bycryptJS依赖项较少）
+
+```
+npm i bcryptjs
+bcrypt.hashSync("123456",10)
+```
+
+## 创建seeder播种
+
+seederjs文件可以将对应的样本数据，填入对应的数据库中，相当于播种机的作用，将数据播种到数据库。
+
+```js
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import colors from "colors";
+import users from "./data/users";
+import products from "./data/products";
+import User from "./models/userModel";
+import Product from "./models/productModel";
+import Order from "./models/orderModel";
+import connectDB from "./config/db";
+
+dotenv.config();
+connectDB();
+
+// 插入样本数据到数据库
+const importData=async()=>{
+    try{
+       // 清空数据库中的样本数据
+       await Order.deleteMany();
+       await User.deleteMany();
+       await Product.deleteMany();
+       // 实现样本数据
+       const createdUsers=await User.insertMany(users);
+       // 实现产品表数据插入的时候需要注意
+       // Product表中需要user字段，所以需要获取管理员id
+       // 然后合并到一个对象中插入数据库
+       const adminUser=createdUsers[0]._id
+       const sampleProducts=products.map(product=>{
+        return {...product,user:adminUser};
+       })
+       await Product.insertMany(sampleProducts);
+       console.log("样本数据添加成功".green.inverse);
+       process.exit(1);
+    }
+    catch(error){
+         console.error(`${error}`.red.inverse);
+         process.exit(1);
+    }
+}
+
+// 插入样本数据到数据库
+const destroyData=async()=>{
+    try{
+       // 清空数据库中的样本数据
+       await Order.deleteMany();
+       await User.deleteMany();
+       await Product.deleteMany();
+       
+       console.log("样本数据销毁成功".green.inverse);
+       process.exit(1);
+    }
+    catch(error){
+         console.error(`${error}`.red.inverse);
+         process.exit(1);
+    }
+}
+
+
+// 判断命令行执行的函数
+// 会判断命令函输入的第几个参数来决定执行哪个函数
+// 比如：node backend/seeder -d表示执行destroyData();
+process.argv[2] === "-d"? destroyData() : importData();
+
+
+
+// package.json文件修改命令
+"data:import":"node backend/seeder",
+"data:destory":"node backend/seeder -d"
+```
+
+## 请求编写
+
+express异步处理机制 express-async-handler
+
+```
+npm i express-async-handler
+// 使用方法
+router.get("/",asyncHandler(async(req,res)=>{
+    const products=await Product.find({})
+    res.json(products)
+}))
+
+```
+
+## 使用postman
+
+postman全局变量使用
+
+添加全局变量URL值为：http://localhost:8000 并在对应项目下选择对应的全局变量（右上角）
+
+## 自定义错误处理中间件
+
+当访问某个id对应的商品时，如果不是32位格式写法，就会返回一个html报错界面，所以自定义错误处理中间件进行处理。
+
+```js
+// 设计中间件
+const notFound=(req,res,next)=>{
+    const error=new Error(`404 Not Found: ${req.originalUrl}`);
+    res.status(404);
+    next(error)
+}
+
+const errorHandler=(err,req,res,next)=>{
+    const statusCode=res.statusCode===200?500:res.statusCode;
+
+    res.status(statusCode);
+    console.log(err.message,statusCode)
+    res.json({
+        message:err.message,
+        stack:process.env.NODE_ENV==="production"?null:err.stack,
+    })
+}
+
+export {notFound,errorHandler}
+
+// server.js文件下注册中间件
+// 404错误处理中间件
+app.use(notFound)
+
+// 错误处理中间件，会接收上一个中间件的next(error)并做报错处理
+app.use(errorHandler)
+```
+
