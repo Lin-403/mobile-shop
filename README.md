@@ -503,3 +503,102 @@ app.use(notFound)
 app.use(errorHandler)
 ```
 
+# redux状态管理
+
+## 创建redux store
+
+```js
+npm i redux react-redux redux-thunk redux-devtools-extension
+ 
+// 创建store
+import {createStore,combineReducers,applyMiddleware} from "redux";
+import thunk from "redux-thunk";
+import { composeWithDevTools } from "redux-devtools-extension";
+
+const reducer=combineReducers({})
+
+const initialState={};
+
+const middleware=[thunk];
+
+// 创建store
+const store=createStore(reducer,initialState,composeWithDevTools(applyMiddleware(...middleware)))
+
+export default store; 
+
+
+// index.js入口文件引入store
+import {Provider} from "react-redux";
+import store from "./store";
+root.render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+```
+
+## 创建reducer和actions
+
+```js
+// reducer.js 创建不同操作下的loading状态值和products值
+import { PRODUCT_LIST_FAIL, PRODUCT_LIST_REQUEST, PRODUCT_LIST_SUCCESS } from "../contents/productConstents";
+
+export const productListReducer=(state={product:[]},action)=>{
+    switch(action.type){
+        case PRODUCT_LIST_REQUEST:
+            return {loading:true,products:[]};
+        case PRODUCT_LIST_SUCCESS:
+            return {loading:false,products:action.payload};
+        case PRODUCT_LIST_FAIL:
+            return {loading:false,error:action.payload};
+        default:
+            return state;
+
+    }
+}
+
+//actions.js使用dispatch对store进行操作
+// 其中包括开始的请求Request，请求成功Success以及请求失败的状态改变
+import { PRODUCT_LIST_FAIL, PRODUCT_LIST_REQUEST, PRODUCT_LIST_SUCCESS } from "../contents/productConstents";
+import axios from "axios";
+
+// 获取所有商品的action
+export const listProducts=()=>async(dispatch)=>{
+
+    try{
+        dispatch({type:PRODUCT_LIST_REQUEST});
+        const {data}=await axios.get("/api/products")
+        dispatch({type:PRODUCT_LIST_SUCCESS,payload:data});
+
+    }
+    catch(error){
+        dispatch({
+            type:PRODUCT_LIST_FAIL,
+            payload:error.response && error.response.data.message
+            ? error.response.data.message
+            :error.message,
+        })
+    }
+}
+
+```
+
+eg:https://www.jianshu.com/p/d33a53fa0e76
+
+```js
+
+// views文件中，组件需要获取store中的状态
+// 首先使用useDispatch获取dispatch方法，然后发送实现定义好的action即可对store中的state做出改变
+// 然后使用useSelector获取Store中state
+
+const dispatch=useDispatch();
+  const productList=useSelector((state)=>state.productList);
+  const {loading,error,products}=productList;
+
+  useEffect(() => {
+   if(products.length===0){
+    dispatch(listProducts())
+   }
+  },[dispatch])
+```
+
