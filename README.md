@@ -602,3 +602,126 @@ const dispatch=useDispatch();
   },[dispatch])
 ```
 
+# 添加购物车
+
+## 数量选择和路由跳转
+
+添加下拉框，选择添加商品的数量
+
+```js
+ <ListGroup.Item>
+     <Row>
+     <Col>购买数量：</Col>
+<Col>
+     <Form.Control as="select" value={qty}
+onChange={(e)=>setQty(e.target.value)}
+    >
+        {[...Array(product.countInStock).keys()].map(item=>
+         <option key={item+1} value={item+1}>{item+1}</option>)}
+   		 </Form.Control>
+   	 </Col>
+    </Row>
+</ListGroup.Item>
+```
+
+然后使用编程式路由（Rv6）useNavigate进行路由的跳转
+
+```js
+// 对按钮添加点击事件
+ <ListGroup.Item className='d-grid gap-2'>
+     <Button
+onClick={addToCartHandler}
+type="button" disabled={product.countInStock===0}>添加到购物车</Button>
+</ListGroup.Item>
+
+// 方法注册，使用useNavigate路由跳转
+// 添加商品到购物车
+const navigate=useNavigate()
+const addToCartHandler=()=>{
+    navigate(`/cart/${params.id}?qty=${qty}`)
+}
+```
+
+## Cart界面实现及redux存储
+
+redux存储---添加商品
+
+```js
+// reducer
+import { CART_ADD_ITEM } from "../contents/cartConstents";
+
+export const  cartReducers=(state={cartitem:[]},action)=>{
+   switch (action.type) {
+    case CART_ADD_ITEM:{
+        const item=action.payload ;
+        const exitItem=state.cartItems.find(x=>x.product===item.product)
+        if(exitItem){
+            return {
+                ...state,
+                cartItems:state.cartItems.map(x=>
+                    x.product===exitItem.product?item:x    
+                )
+            }
+        }
+        else {
+            return {
+                ...state,
+                cartItems:[...state.cartItems,item],
+            }
+        }
+    }
+    default:
+        return state;
+   }
+}
+
+// 相应axction
+import axios from "axios"
+import { CART_ADD_ITEM } from "../contents/cartConstents";
+
+export const addToCart=(id,qty)=>async(dispatch,getState)=>{
+  const {data}=await axios.get(`/api/products/${id}`);
+  dispatch({
+    type:CART_ADD_ITEM,
+    payload:{
+        product:data._id,
+        name:data.name,
+        image:data.image,
+        price:data.price,
+        countInStock:data.countInStock,
+        qty,
+    }
+  })
+  // 数据进行本地存储，防止下次访问请求过慢
+  localStorage.setItem("cartItems",JSON.stringify(getState().cart.cartItems))
+}
+
+// store中初始化数据
+// 初始化获取本地存储的购物车信息
+const cartItemsFromStorage=localStorage.getItem("cartItems")
+? JSON.parse(localStorage.getItem("cartItems"))
+: []
+const initialState={
+    cart:{cartItems:cartItemsFromStorage},
+};
+```
+
+## 删除购物车功能
+
+```js
+// reducer
+    case CART_REMOVE_ITEM:{
+        return {...state,cartItems:state.cartItems.filter(x=>x.product!==action.payload)}
+    }
+// action
+
+// 删除产品action
+export const removeFromCart=(id)=>async(dispatch,getState)=>{
+  dispatch({
+    type:CART_REMOVE_ITEM,
+    payload:id,
+  })
+  localStorage.setItem("cartItems",JSON.stringify(getState().cart.cartItems))
+}
+```
+

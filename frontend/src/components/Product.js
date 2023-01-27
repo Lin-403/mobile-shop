@@ -7,7 +7,7 @@ function Product(props) {
     const {product}=props
     // console.log(product._id,"----",product.rating)
   return (
-    <Card className='my-3 py-3 rounded'>
+    <Card className='my-3 py-0 rounded'>
         <Link to={`/products/${product._id}`}>
             <Card.Img src={product.image} variant="top" />
         </Link>

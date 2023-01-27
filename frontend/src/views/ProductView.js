@@ -1,6 +1,6 @@
 import React,{useState,useEffect} from 'react'
-import { Link, useParams } from 'react-router-dom'
-import {Row,Col,Image,ListGroup,Card,Button, ListGroupItem} from "react-bootstrap"
+import { Link, useParams,useNavigate } from 'react-router-dom'
+import {Row,Col,Image,ListGroup,Card,Button, Form,ListGroupItem} from "react-bootstrap"
 import products from "../products"
 import Rating from '../components/Rating'
 import axios from "axios"
@@ -10,6 +10,7 @@ import Message from '../components/Message'
 import Loader from '../components/Loader'
 
 const ProductView = () => {
+    const [qty,setQty]=useState(1);
     const params=useParams();
     const dispatch=useDispatch()
     const productDetails=useSelector(state=>state.productDetails)
@@ -19,6 +20,12 @@ const ProductView = () => {
         dispatch(listProductsDetails(params.id))
       },[dispatch,params])
     // const product={};
+
+    // 添加商品到购物车
+    const navigate=useNavigate()
+    const addToCartHandler=()=>{
+        navigate(`/cart/${params.id}?qty=${qty}`)
+    }
     return (
         <>
         <Link className='btn btn-dark my-3' to="/">
@@ -64,8 +71,23 @@ const ProductView = () => {
                                 </Col>
                             </Row>
                         </ListGroup.Item>
+                        <ListGroup.Item>
+                            <Row>
+                                <Col>购买数量：</Col>
+                                <Col>
+                                <Form.Control as="select" value={qty}
+                                 onChange={(e)=>setQty(e.target.value)}
+                                >
+                                 {[...Array(product.countInStock).keys()].map(item=>
+                                    <option key={item+1} value={item+1}>{item+1}</option>)}
+                                </Form.Control>
+                                </Col>
+                            </Row>
+                        </ListGroup.Item>
                         <ListGroup.Item className='d-grid gap-2'>
-                            <Button type="button" disabled={product.countInStock===0}>添加到购物车</Button>
+                            <Button
+                             onClick={addToCartHandler}
+                            type="button" disabled={product.countInStock===0}>添加到购物车</Button>
                         </ListGroup.Item>
                     </ListGroup>
                 </Card>

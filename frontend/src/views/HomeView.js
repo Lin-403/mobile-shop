@@ -21,13 +21,13 @@ function HomeView() {
   },[dispatch])
   return (
     <>
-      <h1>最新产品</h1>
+      <h2 style={{padding:"0.5rem 6rem"}}>最新产品</h2>
       {loading?(
         <Loader />
       ):(error?(
         <Message variant="danger">{error}</Message>
         ):(
-          <Row>{products.map(product=>(
+          <Row style={{padding:"0 6rem"}}>{products.map(product=>(
           <Col key={product._id} sm={12} md={6} lg={4} xl={3}>
               <Product product={product}/>
           </Col>

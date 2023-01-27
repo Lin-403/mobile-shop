@@ -4,6 +4,7 @@ import Footer from "./components/Footer";
 import {Container} from "react-bootstrap"
 import HomeView from "./views/HomeView";
 import ProductView from "./views/ProductView";
+import CartViews from "./views/CartViews";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomeView/>} />
             <Route path="/products/:id" element={<ProductView/>} />
+            <Route path="/cart/:id?" element={<CartViews/>} />
           </Routes>  
         </Container>
       </main>
