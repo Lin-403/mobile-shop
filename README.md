@@ -725,3 +725,263 @@ export const removeFromCart=(id)=>async(dispatch,getState)=>{
 }
 ```
 
+# 用户登录验证
+
+## Controller控制器
+
+提取路由请求相关的代码，封装到控制器controllers中
+
+```js
+// productController.js
+import Product from "../models/productModel.js";
+import asyncHandler from "express-async-handler"
+
+//@desc    请求所有产品
+//@route   GET/api/products
+//@access  公开
+const getProducts=asyncHandler(async(req,res)=>{
+    const products=await Product.find({})
+    res.json(products)
+})
+
+//@desc    请求单个产品
+//@route   GET/api/products/:id
+//@access  公开
+const getProductById=asyncHandler(async(req,res)=>{
+    var product=null;
+    try {
+        product=await Product.findById(req.params.id)
+    } catch (error) {
+        product=null;
+    }
+    if(product){
+        res.json(product)
+    }
+    else {
+        res.status(404);
+        throw new Error("Can't find this productId!")
+    }
+    
+})
+
+export {getProducts,getProductById}
+
+//route
+router.route("/").get(getProducts)
+router.route("/:id").get(getProductById)
+
+```
+
+## 用户认证路径
+
+```js
+//  添加相应路由
+import express from "express";
+import { authUser } from "../controllers/userController.js";
+
+const router=express.Router();
+router.post("/login",authUser)
+export default router
+
+// server文件注册使用相应中间件，
+// 利用中间件对传递得到请求转成json形式
+app.use(express.json())
+```
+
+添加验证模型--- 直接在创建模型的时候进行身份的验证
+
+使用bcrtypt进行校验（对加密数据进行校验）
+
+```js
+// 实现用户密码是否匹配
+userSchema.methods.matchPassword=async function (enteredPassword){
+    return await bcrypt.compare(enteredPassword,this.password)
+}
+```
+
+设置controller控制器
+
+```js
+//@desc    用户验证 & 获取token
+//@route   POST/api/users/login
+//@access  公开
+const authUser=asyncHandler(async(req,res)=>{
+    const {email,password}=req.body
+    // res.send({email,password})
+    const user=await User.findOne({email});
+
+    if(user && await user.matchPassword(password)){
+        res.json({
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            isAdmin:user.isAdmin,
+            token:null 
+        })
+    }
+    else {
+        res.status(401);
+        throw new Error("Invalid email or password!");
+    }
+})
+```
+
+## 生成JWT令牌
+
+```js
+// npm i jsonwebtoken
+import jwt from "jsonwebtoken"
+
+const generateToken=(id)=>{
+    // console.log(process.env.JWT_SECRET)
+    return jwt.sign({id},process.env.JWT_SECRET,{
+        expiresIn:"30d",
+    })
+}
+
+export default generateToken
+```
+
+并在控制器中登陆时调用
+
+## 自定义认证中间件
+
+创建访问用户信息的路由，并使用中间价进行拦截
+
+（验证token---token鉴权）
+
+```js
+// userRoutes.js
+router.route("/profile").get(protect,getUserProfile)
+
+// 发起请求时需要携带token并且拼接Bearer [token]
+
+```
+
+校验中间件的编写
+
+（获取token并校验，校验通过会拦截密码，然后返回给控制器user相关信息【挂在在req中】）
+
+```js
+import jwt from "jsonwebtoken";
+import asyncHandler from "express-async-handler";
+import User from "../models/userModel.js";
+
+
+const protect=asyncHandler(async(req,res,next)=>{
+    let token 
+    // console.log(req.headers.authorization);
+    if(req.headers.authorization && req.headers.authorization.startsWith("Bearer")){
+        try{
+            token =req.headers.authorization.split(" ")[1];
+            const decoded=jwt.verify(token,process.env.JWT_SECRET);
+            // console.log(decoded);
+            // 利用获取的token里的id进行查询，并排除掉password字段
+            // 这样通过中间价拦截后的req就有一个user字段，里面还有用户的id
+            req.user=await User.findById(decoded.id).select("-password")
+            // next();
+        }
+        catch(error){
+            res.status(401);
+            throw new Error("Unauthorized,token validation failed!")
+        }
+    }
+    if(!token){
+        res.status(401);
+        throw new Error("Unauthorized, missing token!")
+    }
+
+    next();
+    // return ;
+})
+
+export { protect}
+```
+
+控制器处理获取到的信息并返回
+
+```js
+//@desc    获取登陆成功的用户详情
+//@route   GET/api/users/profile
+//@access  私密
+const getUserProfile=asyncHandler(async(req,res)=>{
+    // res.send("hahahahaha")
+    // 获取经过中间价处理后的user信息(id)
+    // 然后通过这个id值进行数据的获取
+    const user=await User.findById(req.user._id);
+    console.log(user)
+    // res.send({name:"123123"})
+    if(user){
+        res.json({
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            isAdmin:user.isAdmin,
+        })
+    }
+    else {
+        res.status(404);
+        throw new Error("The user does not exist!")
+    }
+    // return ;
+})
+```
+
+## postman全局保存token
+
+在postman的post请求时添加test
+
+```
+pm.environment.set("TOKEN",pm.response.json().token)
+```
+
+## 用户注册和密码加密
+
+```js
+// 设置contorller
+//@desc    用户注册
+//@route   POST/api/users
+//@access  公开
+const registerUser=asyncHandler(async(req,res)=>{
+    const {name,email,password}=req.body
+    // res.send({email,password})
+    const userExists=await User.findOne({email});
+
+    if(userExists){
+        res.status(400);
+        throw new Error("User already exist!");
+    }
+    const user=await User.create({name,email,password});
+    if(user){
+        res.status(201)
+        .json({
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            isAdmin:user.isAdmin,
+            token:generateToken(user._id)
+        })
+    }else {
+        res.status(400)
+        throw new Error("Invalid user information!");
+    }
+    // return ;
+})
+
+// 路由注册
+router.route("/").post(registerUser)
+
+// 获取登陆密码后需要在存入数据库中进行加密
+// 实现用户密码加密
+// pre即在数据保存到数据库之前的操作
+userSchema.pre("save",async function (next){
+    // 判断密码是否有修改
+    if(!this.isModified("password")){
+        next();
+    }
+    // 有变化则需要将传递过来的数据进行加密处理
+    const salt=await bcrypt.genSalt(10);
+    this.password=await bcrypt.hash(this.password,salt)
+})
+```
+

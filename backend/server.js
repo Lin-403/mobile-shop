@@ -4,6 +4,7 @@ import  dotenv from "dotenv"
 import colors from "colors"
 import connectDB from "./config/db.js"
 import productRoutes from "./routes/productRoutes.js"
+import userRoutes from "./routes/userRoutes.js"
 import { notFound, errorHandler } from "./middleware/errormiddleware.js"
 
 dotenv.config()
@@ -12,12 +13,15 @@ connectDB();
 const PORT=process.env.PORT || 8000
 
 const app=express();
+// 利用中间件对传递得到请求转成json形式
+app.use(express.json())
 app.get("/",(req,res)=>{
     res.send("服务器已经运行...")
 })
 
 // 应用级中间件
 app.use("/api/products",productRoutes)
+app.use("/api/users",userRoutes)
 
 // 404错误处理中间件
 app.use(notFound)
