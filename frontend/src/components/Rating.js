@@ -9,8 +9,8 @@ const Rating = ({value,text,color}) => {
         {
         arr.map(i=>{
             // console.log(i,value)
-            return <span>
-            <i style={{color}} className={
+            return <span key={i}>
+            <i  style={{color}} className={
                 value>=i?"fas fa-star":value>=i-0.5?"fas fa-star-half-alt":"far fa-star"
             }></i>
         </span>
