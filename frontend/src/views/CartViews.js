@@ -1,5 +1,5 @@
 import React from 'react'
-import { useEffect } from 'react';
+import { useEffect ,useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
@@ -7,16 +7,36 @@ import { useParams } from 'react-router-dom'
 import { addToCart, removeFromCart } from '../actions/cartActions';
 import Message from '../components/Message';
 import {Row,Col,Image,ListGroup,Card,Button, Form,ListGroupItem} from "react-bootstrap"
+import { Modal } from 'antd';
+import { ExclamationCircleFilled } from '@ant-design/icons';
 
 
 const CartViews = () => {
      const params=useParams();
      const location=useLocation();
+     const { confirm } = Modal;
      const qty=location.search?Number(location.search.split("=")[1]):1;
     //   console.log(qty)
     const dispatch=useDispatch();
     const cart=useSelector(state=>state.cart);
     // console.log(cart);
+    const showDeleteConfirm = (item) => {
+        confirm({
+          title: 'Are you sure delete this task?',
+          icon: <ExclamationCircleFilled />,
+          content: 'Some descriptions',
+          okText: 'Yes',
+          okType: 'danger',
+          cancelText: 'No',
+          onOk() {
+            removeFromCartHandler(item.product)
+          },
+          onCancel() {
+            console.log('Cancel');
+          },
+        });
+      };
+
     const {cartItems}=cart
     useEffect(()=>{
         if(params.id){
@@ -33,6 +53,7 @@ const CartViews = () => {
     const checkoutHandler=()=>{
 
     }
+    
     return (
         <Row style={{padding:" 0.5rem 6rem"}}>
             <Col md={7}>
@@ -67,8 +88,7 @@ const CartViews = () => {
                                               </Form.Control>
                                     </Col>
                                     <Col><Button type="button"
-                                      onClick={()=>removeFromCartHandler(item.product)}
-
+                                      onClick={()=>showDeleteConfirm(item)}
                                     >
                                         <i className='fas fa-trash'></i></Button></Col>
                                 </Row>
@@ -93,6 +113,7 @@ const CartViews = () => {
                     </ListGroup>
                 </Card>
             </Col>
+           
         </Row>
     )
 }

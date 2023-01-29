@@ -1,4 +1,4 @@
-React商城系统
+ React商城系统
 
 # 启动前端
 
@@ -984,4 +984,330 @@ userSchema.pre("save",async function (next){
     this.password=await bcrypt.hash(this.password,salt)
 })
 ```
+
+# 前端用户认证
+
+```js
+// 编写相应的action
+// 用户登录Action
+export const login=(email,password)=>async(dispatch)=>{
+    try {
+        dispatch({type:USER_LOGIN_REQUEST});
+        const config={
+            headers:{
+                "Content-Type":"application/json"
+            }
+        }
+        const {data}=await axios.post("/api/users/login",{email,password},config);
+        dispatch({type:USER_LOGIN_SUCCESS,payload:data});
+        localStorage.setItem("userInfo",JSON.stringify(data))
+    } catch (error) {
+        dispatch({
+            type:USER_LOGIN_FAIL,
+            payload:error.response && error.response.data.message
+            ? error.response.data.message
+            :error.message,
+        })
+    }
+}
+
+// store中初始化引入
+// 获取本地存储的登录用户信息
+const userInfoFromStorage=localStorage.getItem("userInfo")?
+JSON.parse(localStorage.getItem("userInfo")):null;
+const initialState={
+    cart:{cartItems:cartItemsFromStorage},
+    userLogin:{userInfo:userInfoFromStorage}
+};
+
+```
+
+登录页面及功能实现
+
+```jsx
+
+const LoginView = () => {
+    const [email,setEmail]=useState("");
+    const [password,setPassword]=useState("")
+    const location=useLocation();
+    const navigate=useNavigate()
+    const dispatch=useDispatch();
+    const userLogin=useSelector(state=>state.userLogin)
+    const {loading,error,userInfo}=userLogin
+
+    const redirect=location.search?location.search.split("=")[1]:"/"
+    useEffect(()=>{
+        if(userInfo){
+            navigate(redirect)
+        }
+    },[userInfo,redirect])
+    // 表单提交
+    const submitHandler=(e)=>{
+        e.preventDefault()
+        // dispatch login函数
+        dispatch(login(email,password))
+    }
+  return (
+    <FormContainer>
+        <h1>Login</h1>
+        {error && <Message variant="danger">{error}</Message>}
+        {loading && <Loader/>}
+        <Form onSubmit={submitHandler}>
+            <Form.Group style={{margin:"1rem 0rem 0rem "}} controlId='email'>
+                <Form.Label>Email:</Form.Label>
+                <Form.Control 
+                type="email"
+                placeholder='please input your email'
+                value={email}
+                onChange={(e)=>setEmail(e.target.value)}>
+
+                </Form.Control>
+            </Form.Group>
+            <Form.Group style={{margin:"1rem 0rem 0rem "}} controlId='password'>
+                <Form.Label>Password:</Form.Label>
+                <Form.Control 
+                type="password"
+                placeholder='please input your password'
+                value={password}
+                onChange={(e)=>setPassword(e.target.value)}>
+                    
+                </Form.Control>
+                
+            </Form.Group>
+            <Button  style={{margin:"1rem 0rem 0rem "}} type="submit" variant="primary">Login</Button>
+        </Form>
+        <Row className='py-3'>
+            <Col>
+            New user? ☞ <Link to={redirect?`/register?redirect=${redirect}`:
+            "/register"
+        }>Go to register</Link></Col>
+        </Row>
+    </FormContainer>
+  )
+}
+
+```
+
+用户登录成功时，导航栏登录变为账号名称，下拉显示个人中心和退出
+
+```js
+// 点击退出当前用户
+// action
+// 用户推出
+export const logout=()=>(dispatch)=>{
+    localStorage.removeItem("userInfo");
+    dispatch({type:USER_LOGOUT})
+}
+```
+
+## 用户注册
+
+```js
+// 用户注册reducer
+export const userRegisterReducer=(state={},action)=>{
+    switch(action.type){
+        case USER_REGISTER_REQUEST:
+            return {loading:true};
+        case USER_REGISTER_SUCCESS:
+            return {loading:false,userInfo:action.payload};
+        case USER_REGISTER_FAIL:
+            return {loading:false,error:action.payload};
+        default:
+            return state;
+    }
+}
+
+// 用户注册Action
+export const register=(name,email,password)=>async(dispatch)=>{
+    try {
+        dispatch({type:USER_REGISTER_REQUEST});
+        const config={
+            headers:{
+                "Content-Type":"application/json"
+            }
+        }
+        const {data}=await axios.post("/api/users",{name,email,password},config);
+        dispatch({type:USER_REGISTER_SUCCESS,payload:data});
+        dispatch({type:USER_LOGIN_SUCCESS,payload:data});
+        localStorage.setItem("userInfo",JSON.stringify(data))
+    } catch (error) {
+        dispatch({
+            type:USER_REGISTER_FAIL,
+            payload:error.response && error.response.data.message
+            ? error.response.data.message
+            :error.message,
+        })
+    }
+}
+```
+
+用户资料更新（后端）---controller控制器
+
+```js
+//@desc    更新用户个人资料
+//@route   PUT/api/users/profile
+//@access  私密
+const updateUserProfile=asyncHandler(async(req,res)=>{
+    // res.send("hahahahaha")
+    // 获取经过中间价处理后的user信息(id)
+    // 然后通过这个id值进行数据的获取
+
+    const user=await User.findById(req.user._id);
+    // 获取更新后的资料
+    if(user){
+       user.name=req.body.name || user.name
+       user.email=req.body.email||user.email 
+       if(req.body.password){
+        user.password=req.body.password
+       }
+       const updateUser=await user.save();
+       // 返回更新后的用户信息
+       res.json({
+        _id:updateUser._id,
+        name:updateUser.name,
+        email:updateUser.email,
+        isAdmin:updateUser.isAdmin,
+        token:generateToken(updateUser._id)
+    })
+    }
+    else {
+        res.status(404);
+        throw new Error("The user does not exist!")
+    }
+})
+
+
+```
+
+路由注册，并验证
+
+```js
+router.route("/profile")
+    .get(protect,getUserProfile)
+    .put(protect,updateUserProfile)
+```
+
+## 用户详情
+
+```js
+// reducer
+// 用户详情reducer
+export const userDetailsReducer=(state={},action)=>{
+    switch(action.type){
+        case USER_DETAILS_REQUEST:
+            return {loading:true,...state};
+        case USER_DETAILS_SUCCESS:
+            return {loading:false,user:action.payload};
+        case USER_DETAILS_FAIL:
+            return {loading:false,error:action.payload};
+        default:
+            return state;
+    }
+}
+
+// store
+const reducer=combineReducers({
+    // ...,
+    userDetails:userDetailsReducer
+})
+
+// action
+// 用户详情Action
+export const getUserDetails=(id)=>async(dispatch,getState)=>{
+    try {
+        dispatch({type:USER_DETAILS_REQUEST});
+        // 获取登录成功后的用户信息
+        const {
+            userLogin:{userInfo},
+        }=getState
+
+        const config={
+            headers:{
+                "Content-Type":"application/json",
+                Authorization:`Bearer ${userInfo.token}`
+            }
+        }
+
+        const {data}=await axios.get(
+            `/api/users${id}`,
+            config);
+        dispatch({type:USER_DETAILS_SUCCESS,payload:data});
+
+    } catch (error) {
+        dispatch({
+            type:USER_DETAILS_FAIL,
+            payload:error.response && error.response.data.message
+            ? error.response.data.message
+            :error.message,
+        })
+    }
+}
+```
+
+更新用户详情
+
+```js
+// 更新用户详情reducer
+export const userUpdateDetailsReducer=(state={},action)=>{
+    switch(action.type){
+        case USER_UPDATE_PROFILE_REQUEST:
+            return {loading:true};
+        case USER_UPDATE_PROFILE_SUCCESS:
+            return {loading:false,userInfo:action.payload,success:true};
+        case USER_UPDATE_PROFILE_FAIL:
+            return {loading:false,error:action.payload};
+        default:
+            return state;
+    }
+}
+
+// store中引入
+
+// action
+// 更新用户详情Action
+export const updateUserDetails=(user)=>async(dispatch,getState)=>{
+    try {
+        dispatch({type:USER_UPDATE_PROFILE_REQUEST});
+        // 获取登录成功后的用户信息
+        const {
+            userLogin:{userInfo},
+        }=getState()
+
+        const config={
+            headers:{
+                "Content-Type":"application/json",
+                Authorization:`Bearer ${userInfo.token}`
+            }
+        }
+
+        const {data}=await axios.put(
+            `/api/users/profile`,user,
+            config);
+        dispatch({type:USER_UPDATE_PROFILE_SUCCESS,payload:data});
+
+    } catch (error) {
+        dispatch({
+            type:USER_UPDATE_PROFILE_FAIL,
+            payload:error.response && error.response.data.message
+            ? error.response.data.message
+            :error.message,
+        })
+    }
+}
+
+// 前端提交
+// 表单提交(更新用户资料)
+const submitHandler=(e)=>{
+    e.preventDefault()
+    // dispatch update profile函数
+   	dispatch(updateUserDetails({id:user._id,name,email,password}))
+    dispatch(getUserDetails("profile"));
+}  
+```
+
+用户资料重置
+
+## ！异步问题
+
+拿不到最新的redux状态值导致无法在初始化刷新时进行正确的操作
 

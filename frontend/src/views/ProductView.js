@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { listProductsDetails } from '../actions/productActions'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
+import { message } from 'antd'
 
 const ProductView = () => {
     const [qty,setQty]=useState(1);
@@ -25,6 +26,7 @@ const ProductView = () => {
     const navigate=useNavigate()
     const addToCartHandler=()=>{
         navigate(`/cart/${params.id}?qty=${qty}`)
+        message.success("Add to cart Successfully!")
     }
     return (
         <>

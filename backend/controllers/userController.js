@@ -74,6 +74,7 @@ const getUserProfile=asyncHandler(async(req,res)=>{
             name:user.name,
             email:user.email,
             isAdmin:user.isAdmin,
+            
         })
     }
     else {
@@ -83,4 +84,37 @@ const getUserProfile=asyncHandler(async(req,res)=>{
     // return ;
 })
 
-export {authUser,getUserProfile,registerUser}
+//@desc    更新用户个人资料
+//@route   PUT/api/users/profile
+//@access  私密
+const updateUserProfile=asyncHandler(async(req,res)=>{
+    // res.send("hahahahaha")
+    // 获取经过中间价处理后的user信息(id)
+    // 然后通过这个id值进行数据的获取
+
+    const user=await User.findById(req.user._id);
+    // 获取更新后的资料
+    if(user){
+       user.name=req.body.name || user.name
+       user.email=req.body.email||user.email 
+       if(req.body.password){
+        user.password=req.body.password
+       }
+       const updateUser=await user.save();
+       // 返回更新后的用户信息
+       res.json({
+        _id:updateUser._id,
+        name:updateUser.name,
+        email:updateUser.email,
+        isAdmin:updateUser.isAdmin,
+        token:generateToken(updateUser._id)
+    })
+    }
+    else {
+        res.status(404);
+        throw new Error("The user does not exist!")
+    }
+})
+
+
+export {authUser,getUserProfile,registerUser,updateUserProfile}
