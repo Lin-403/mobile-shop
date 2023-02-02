@@ -1,7 +1,7 @@
 import React from 'react'
 import { useEffect ,useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useParams } from 'react-router-dom'
 import { addToCart, removeFromCart } from '../actions/cartActions';
@@ -14,6 +14,7 @@ import { ExclamationCircleFilled } from '@ant-design/icons';
 const CartViews = () => {
      const params=useParams();
      const location=useLocation();
+     const navigate=useNavigate()
      const { confirm } = Modal;
      const qty=location.search?Number(location.search.split("=")[1]):1;
     //   console.log(qty)
@@ -51,7 +52,7 @@ const CartViews = () => {
     }
     // 去支付
     const checkoutHandler=()=>{
-
+        navigate("/shipping")
     }
     
     return (

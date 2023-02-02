@@ -25,8 +25,15 @@ const ProductView = () => {
     // 添加商品到购物车
     const navigate=useNavigate()
     const addToCartHandler=()=>{
-        navigate(`/cart/${params.id}?qty=${qty}`)
+        const userInfo=localStorage.getItem("userInfo");
+        if(userInfo){
+            navigate(`/cart/${params.id}?qty=${qty}`)
         message.success("Add to cart Successfully!")
+        }
+        else {
+            message.error("You should to login now!")
+            navigate("/login")
+        }
     }
     return (
         <>

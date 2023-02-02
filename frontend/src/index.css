@@ -15,3 +15,27 @@ h4{
 .rating span{
     margin:0.1rem;
 }
+.ant-steps .ant-steps-item-process .ant-steps-item-icon {
+    background-color: #78C2AD;
+    border-color: rgb(120 194 173)
+}
+.ant-steps .ant-steps-item-finish>.ant-steps-item-container>.ant-steps-item-content>.ant-steps-item-title::after {
+    background-color: #78C2AD;
+}
+.ant-steps .ant-steps-item-finish .ant-steps-item-icon >.ant-steps-icon {
+    color:  #78C2AD;
+}
+.ant-steps .ant-steps-item-finish .ant-steps-item-icon {
+    background-color: #f0fff8;
+    border-color: #f0fff8;
+}
+.ant-btn-primary {
+    background-color: #78C2AD;
+}
+.ant-btn-primary {
+    background-color: #78C2AD;
+}
+.ant-radio-wrapper .ant-radio-checked .ant-radio-inner {
+    background-color: #78C2AD;
+    border-color: #78C2AD;
+}

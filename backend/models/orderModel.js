@@ -6,7 +6,7 @@ const orderSchema=mongoose.Schema({
         required:true,
         ref:"User"
     },
-    oredrItems:[{
+    orderItems:[{
         name:{
             type:String,
             required:true,
@@ -73,6 +73,11 @@ const orderSchema=mongoose.Schema({
         default:0,
     },
     totalPrice:{
+        type:Number,
+        required:true,
+        default:0,
+    },
+    itemsPrice:{
         type:Number,
         required:true,
         default:0,

@@ -8,6 +8,8 @@ import CartViews from "./views/CartViews";
 import LoginView from "./views/LoginView";
 import RegisterView from "./views/RegisterView";
 import ProfileView from "./views/ProfileView";
+import ShippingViews from "./views/ShippingViews";
+import OrderView from "./views/OrderView.js";
 
 function App() {
   return (
@@ -17,9 +19,12 @@ function App() {
         <Container>
           <Routes>
             <Route path="/login" element={<LoginView/>} />
+            <Route path="/shipping" element={<ShippingViews/>} />
+            <Route path="/order/:id" element={<OrderView/>} />
             <Route path="/register" element={<RegisterView/>} />
             <Route path="/" element={<HomeView/>} />
             <Route path="/products/:id" element={<ProductView/>} />
+          
             <Route path="/cart/:id?" element={<CartViews/>} />
             <Route path="/profile" element={<ProfileView />} />
           </Routes>  

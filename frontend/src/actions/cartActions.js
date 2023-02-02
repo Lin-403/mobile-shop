@@ -1,5 +1,5 @@
 import axios from "axios"
-import { CART_ADD_ITEM, CART_REMOVE_ITEM } from "../contents/cartConstents";
+import { CART_ADD_ITEM, CART_REMOVE_ITEM, CART_SAVE_PAYMENT_METHOD, CART_SAVE_SHIPPING_ADDRESS } from "../contents/cartConstents";
 
 
 export const addToCart=(id,qty)=>async(dispatch,getState)=>{
@@ -26,4 +26,22 @@ export const removeFromCart=(id)=>async(dispatch,getState)=>{
     payload:id,
   })
   localStorage.setItem("cartItems",JSON.stringify(getState().cart.cartItems))
+}
+
+// 保存收货地址action
+export const saveShippingAddress=(data)=>async(dispatch)=>{
+  dispatch({
+    type:CART_SAVE_SHIPPING_ADDRESS,
+    payload:data,
+  })
+  localStorage.setItem("shippingAddress",JSON.stringify(data))
+}
+
+// 保存收货方法action
+export const savePaymentMethod=(data)=>async(dispatch)=>{
+  dispatch({
+    type:CART_SAVE_PAYMENT_METHOD,
+    payload:data,
+  })
+  localStorage.setItem("paymentMethod",JSON.stringify(data))
 }
