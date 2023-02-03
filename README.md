@@ -1313,3 +1313,11 @@ const submitHandler=(e)=>{
 
 # 结账流程
 
+# 后台界面
+
+## 图片文件上传
+
+```
+npm i multer
+```
+

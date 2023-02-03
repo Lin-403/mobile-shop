@@ -32,9 +32,11 @@ h4{
 .ant-btn-primary {
     background-color: #78C2AD;
 }
-.ant-btn-primary {
-    background-color: #78C2AD;
+.ant-btn:hover{
+    background-color: #a1cfc0 !important;
+    color: #a1cfc0;
 }
+
 .ant-radio-wrapper .ant-radio-checked .ant-radio-inner {
     background-color: #78C2AD;
     border-color: #78C2AD;

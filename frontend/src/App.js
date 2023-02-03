@@ -10,6 +10,10 @@ import RegisterView from "./views/RegisterView";
 import ProfileView from "./views/ProfileView";
 import ShippingViews from "./views/ShippingViews";
 import OrderView from "./views/OrderView.js";
+import UserListView from "./views/UserListView";
+import UserEditView from "./views/UserEditView";
+import ProductListView from "./views/ProductListView";
+import ProductEditView from "./views/ProductEditView";
 
 function App() {
   return (
@@ -24,7 +28,11 @@ function App() {
             <Route path="/register" element={<RegisterView/>} />
             <Route path="/" element={<HomeView/>} />
             <Route path="/products/:id" element={<ProductView/>} />
-          
+            <Route path="/admin/userlist" element={<UserListView/>} />
+            <Route path="/admin/userlist/:id/edit" element={<UserEditView/>} />
+            <Route path="/admin/productlist" element={<ProductListView/>} />
+            <Route path="/admin/product/:id/edit" element={<ProductEditView/>} />
+
             <Route path="/cart/:id?" element={<CartViews/>} />
             <Route path="/profile" element={<ProfileView />} />
           </Routes>  

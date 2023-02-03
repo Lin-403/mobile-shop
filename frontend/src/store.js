@@ -1,21 +1,28 @@
 import {createStore,combineReducers,applyMiddleware} from "redux";
 import thunk from "redux-thunk";
 import { composeWithDevTools } from "redux-devtools-extension";
-import { productLDetailsReducer, productListReducer } from "./reducers/productReducers";
+import { productCreateReducer, productDeleteReducer, productLDetailsReducer, productListReducer, productUpdateReducer } from "./reducers/productReducers";
 import { cartReducers } from "./reducers/cartReducers";
-import { userDetailsReducer, userLoginReducer, userRegisterReducer, userUpdateDetailsReducer } from "./reducers/userReducers";
-import { orderCreateReducer, orderDetailsReducer } from "./reducers/orderReducers";
+import {   userListReducer, userDetailsReducer, userLoginReducer, userRegisterReducer, userUpdateDetailsReducer, userDeleteReducer, updateUserReducer } from "./reducers/userReducers.js";
+import { orderCreateReducer, orderDetailsReducer } from "./reducers/orderReducers.js";
 
 const reducer=combineReducers({
     productList:productListReducer,
     productDetails:productLDetailsReducer,
+    productDelete:productDeleteReducer,
+    productCreate:productCreateReducer,
+    productUpdate:productUpdateReducer,
     cart:cartReducers,
     userLogin:userLoginReducer,
     userRegister:userRegisterReducer,
     userDetails:userDetailsReducer,
     userUpdateProfile:userUpdateDetailsReducer,
+    userList:userListReducer,
+    userUpdate:updateUserReducer,
+    userDelete:userDeleteReducer,
     orderCreate:orderCreateReducer,
-    orderDetails:orderDetailsReducer
+    orderDetails:orderDetailsReducer,
+    
 })
 
 // 初始化获取本地存储的购物车信息

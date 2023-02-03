@@ -66,7 +66,7 @@ const getUserProfile=asyncHandler(async(req,res)=>{
     // 然后通过这个id值进行数据的获取
 
     const user=await User.findById(req.user._id);
-    console.log(user)
+    // console.log(user)
     // res.send({name:"123123"})
     if(user){
         res.json({
@@ -116,5 +116,88 @@ const updateUserProfile=asyncHandler(async(req,res)=>{
     }
 })
 
+//@desc    获取所有用户
+//@route   GET/api/users
+//@access  私密
+export const getUsers=asyncHandler(async(req,res)=>{
+    // res.send("hahahahaha")
+    // 获取经过中间价处理后的user信息(id)
+    // 然后通过这个id值进行数据的获取
+
+    const users=await User.find({});
+    res.json(users)
+})
+
+//@desc    删除用户
+//@route   DELETE/api/:id
+//@access  私密
+export const deleteUser=asyncHandler(async(req,res)=>{
+    // res.send("hahahahaha")
+    // 获取经过中间价处理后的user信息(id)
+    // 然后通过这个id值进行数据的获取
+    const user=await User.findById(req.params.id);
+    if(user){
+        await user.remove();
+        res.json({message:"Delete successfully!"})
+    }
+    else {
+        res.status(404);
+        throw new Error("User not found!")
+    }
+    const users=await User.find({});
+    res.json(users)
+})
+
+
+//@desc    获取单个的用户详情
+//@route   GET/api/users/:id
+//@access  私密
+export  const getUserById=asyncHandler(async(req,res)=>{
+    // res.send("hahahahaha")
+    // 获取经过中间价处理后的user信息(id)
+    // 然后通过这个id值进行数据的获取
+
+    const user=await User.findById(req.params.id).select("-password");
+    // console.log(user)
+    // res.send({name:"123123"})
+    if(user){
+        res.json(user)
+    }
+    else {
+        res.status(404);
+        throw new Error("The user does not exist!")
+    }
+    // return ;
+})
+
+//@desc    更新单个的用户详情
+//@route   PUT/api/users/:id
+//@access  私密
+export  const updateUserById=asyncHandler(async(req,res)=>{
+    // res.send("hahahahaha")
+    // 获取经过中间价处理后的user信息(id)
+    // 然后通过这个id值进行数据的获取
+
+    const user=await User.findById(req.params.id)
+    // console.log(user)
+    // res.send({name:"123123"})
+    if(user){
+        user.name=req.body.name || user.name
+        user.email=req.body.email||user.email 
+        user.isAdmin=req.body.isAdmin ||user.isAdmin
+        const updateUser=await user.save();
+        // 返回更新后的用户信息
+        res.json({
+         _id:updateUser._id,
+         name:updateUser.name,
+         email:updateUser.email,
+         isAdmin:updateUser.isAdmin,
+     })
+     }
+     else {
+         res.status(404);
+         throw new Error("The user does not exist!")
+     }
+})
 
 export {authUser,getUserProfile,registerUser,updateUserProfile}
