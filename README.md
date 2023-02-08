@@ -1321,3 +1321,46 @@ const submitHandler=(e)=>{
 npm i multer
 ```
 
+## 数据库表的关联
+
+```js
+//@desc    获取所有订单
+//@route   GET/api/orders
+//@access  私密(仅限管理员)
+const getOrders = asyncHandler(async (req, res) => {
+  // 查询order表所有数据，然后级联查找，user表的id和name
+  const orders = await Order.find({}).populate('user', 'id name')
+  res.json(orders)
+})
+```
+
+## 使用uuid创建id
+
+```
+npm i uuid
+
+import { v4 as uuidv4 } from 'uuid'
+uuidv4()
+```
+
+# PayPal支付
+
+```
+// 账户
+https://developer.paypal.com/dashboard/accounts
+
+//创建相应app
+https://developer.paypal.com/dashboard/applications/sandbox
+
+// 获取client Id
+
+// 插入脚本
+https://developer.paypal.com/sdk/js/configuration/
+
+
+paypal样式组件
+react-paypal-button-v2
+npmjs.com/package/react-paypal-button-v2
+
+```
+

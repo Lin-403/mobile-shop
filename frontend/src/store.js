@@ -4,7 +4,7 @@ import { composeWithDevTools } from "redux-devtools-extension";
 import { productCreateReducer, productDeleteReducer, productLDetailsReducer, productListReducer, productUpdateReducer } from "./reducers/productReducers";
 import { cartReducers } from "./reducers/cartReducers";
 import {   userListReducer, userDetailsReducer, userLoginReducer, userRegisterReducer, userUpdateDetailsReducer, userDeleteReducer, updateUserReducer } from "./reducers/userReducers.js";
-import { orderCreateReducer, orderDetailsReducer } from "./reducers/orderReducers.js";
+import { orderCreateReducer, orderDetailsReducer, orderListReducer, orderPayReducer } from "./reducers/orderReducers.js";
 
 const reducer=combineReducers({
     productList:productListReducer,
@@ -22,7 +22,8 @@ const reducer=combineReducers({
     userDelete:userDeleteReducer,
     orderCreate:orderCreateReducer,
     orderDetails:orderDetailsReducer,
-    
+    orderList:orderListReducer,
+    orderPay:orderPayReducer
 })
 
 // 初始化获取本地存储的购物车信息

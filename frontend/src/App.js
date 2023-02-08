@@ -14,6 +14,7 @@ import UserListView from "./views/UserListView";
 import UserEditView from "./views/UserEditView";
 import ProductListView from "./views/ProductListView";
 import ProductEditView from "./views/ProductEditView";
+import OrderListView from "./views/OrderListView";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/admin/userlist/:id/edit" element={<UserEditView/>} />
             <Route path="/admin/productlist" element={<ProductListView/>} />
             <Route path="/admin/product/:id/edit" element={<ProductEditView/>} />
+            <Route path="/admin/orderlist" element={<OrderListView/>} />
 
             <Route path="/cart/:id?" element={<CartViews/>} />
             <Route path="/profile" element={<ProfileView />} />

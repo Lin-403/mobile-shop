@@ -1,31 +1,124 @@
-import { Button, Checkbox, message } from 'antd';
-import React, { useEffect } from 'react'
-import {Image,Container,Row,Col,Navbar,Nav, NavDropdown, ListGroup, Card} from "react-bootstrap";
+import {  Checkbox, message,Modal } from 'antd';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react'
+import {Button,Image,Container,Row,Col,Navbar,Nav, NavDropdown, ListGroup, Card} from "react-bootstrap";
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { createOrder, getOrderDetails } from '../actions/orderActions';
+import { createOrder, getOrderDetails, payOrder } from '../actions/orderActions';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
+import { v4 as uuidv4 } from 'uuid'
+import { ORDER_PAY_RESET } from '../contents/orderContents';
 
 
 const OrderView = () => {
     const params=useParams();
+    const orderId=params.id
     const dispatch=useDispatch()
     // useEffect(() => {
     //     dispatch(getOrderDetails(params.id))
     // }, [])
-    const orderDetails=useSelector(state=>state.orderDetails)
-    const {loading,error,order}=orderDetails
+    const userLogin = useSelector((state) => state.userLogin)
+    const { userInfo } = userLogin
+  
+    const orderDetails = useSelector((state) => state.orderDetails)
+    const { order, loading, error } = orderDetails
+  
+    const orderPay = useSelector((state) => state.orderPay)
+    const { loading: loadingPay, error: errorPay, success: successPay } = orderPay
+    
+    const [image, setImage] = useState('')
+    const [text, setText] = useState('请扫码')
 
-   
+      //SDK
+     const [SDK, setSDK] = useState(false)
+
+    const handlePayment = () => {
+        setIsModalOpen(true);
+        // //获取微信返回的支付二维码图片
+        axios.post("/code").then(res=>{
+          let div = document.createElement('div');
+          console.log(res.data)
+          div.innerHTML = res.data;
+          // div.style='width:150px;height:150px;'
+          document.getElementsByClassName('qrcode')[0].appendChild(div);
+        })
+        // setImage('https://www.thenewstep.cn/pay/index.php?' + 'pid=' + order._id)
+        // setShow(true)
+        
+        // //设置定时器去监听支付
+        // let timer = setInterval(() => {
+        //   //请求支付status
+        //   axios.get('/status').then((res) => {
+        //     if (res.data.status === 0) {
+        //       setText('请扫码')
+        //     } else if (res.data.status === 1) {
+        //       setText('您已经完成了扫码，请支付')
+        //     } else if (res.data.status === 2) {
+        //       //创建支付结果对象
+        //       const paymentResult = {
+        //         id: uuidv4(),
+        //         status: res.data.status,
+        //         updata_time: Date.now(),
+        //         email_address: order.user.email,
+        //       }
+        //       //更新完成支付的订单
+        //       dispatch(payOrder(orderId, paymentResult))
+        //       setText('您已经支付成功，请等待发货')
+        //       setShow(false)
+        //       clearTimeout(timer)
+        //     }
+        //   })
+        // }, 1000)
+      }
+      const navigate=useNavigate()
     useEffect(() => {
-        // console.log(params.id);
-        if(!order||order._id!==params.id){
-            dispatch(getOrderDetails(params.id))
+      const addPayPalScript = async () => {
+        const { data: clientId } = await axios.get('/api/config/paypal')
+        console.log(clientId)
+        const script = document.createElement('script')
+        script.type = 'text/javascript'
+        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}`
+        script.async = true
+  
+        script.onload = () => {
+          setSDK(true)
         }
-      },[dispatch,params,order])
+        document.body.appendChild(script)
+      }
+      addPayPalScript()
+      if(!userInfo){
+        navigate("/login")
+      }
+        // console.log(params.id);
+        if(!order||order._id!==params.id || successPay){
+          dispatch({type:ORDER_PAY_RESET}) 
+          dispatch(getOrderDetails(params.id))
+        }
+      },[dispatch,params,order,orderId,successPay])
 
+
+      const [isModalOpen, setIsModalOpen] = useState(false);
+      const showModal = () => {
+       
+      };
+      const handleOk = () => {
+        const paymentResult = {
+          id: uuidv4(),
+          status: "2",
+          updata_time: Date.now(),
+          email_address: order.user.email,
+        }
+        dispatch(payOrder(orderId, paymentResult))
+        setIsModalOpen(false);
+        message.success("支付成功！")
+      };
+      const handleCancel = () => {
+        setIsModalOpen(false);
+        document.getElementsByClassName('qrcode')[0].innerHTML="";
+       
+      };
     return (
         Object.keys(order).length===0?<Loader/>:error?message.error(error):<>
         <h2>订单号：{order._id}</h2>
@@ -51,7 +144,7 @@ const OrderView = () => {
             <ListGroup.Item>
                 <h5>支付方式</h5>
                 <p><strong>支付方法：</strong>{order.paymentMethod}</p>
-                {order.isPaid?(<Message variant="success">支付时间：{order.PaidAt}</Message>):(
+                {order.isPaid?(<Message variant="success">支付时间：{order.paidAt}</Message>):(
                     <Message variant="secondary">未支付</Message>
                 )}
             </ListGroup.Item>
@@ -102,6 +195,38 @@ const OrderView = () => {
                 <Col>订单总价</Col>
                 <Col>$ {order.totalPrice}</Col>
                 </Row>
+            </ListGroup.Item>
+            <ListGroup.Item className='d-grid gap-2'>
+            <Button
+                    type='button'
+                    className='btn-block'
+                    onClick={handlePayment}
+                    disabled={order.orderItems === 0}
+                  >
+                    去支付
+                  </Button>
+                    <Modal title={`订单号: ${order._id}`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+                        <hr/>
+                        <p>支付金额：￥{order.totalPrice}</p>
+                        <p>支付方式：{order.paymentMethod}</p>
+                        <Row>
+                        <Col md={6} style={{ textAlign: 'center' }}>
+                          <div className='qrcode'></div>
+                          <p
+                            style={{
+                              backgroundColor: '#00C800',
+                              color: 'white',
+                            }}
+                          >
+                            {text}
+                          </p>
+                        </Col>
+                        <Col>
+                          <Image src='/images/saoyisao.jpg' />
+                        </Col>
+                      </Row>
+                      <hr/>
+                    </Modal>
             </ListGroup.Item>
             </ListGroup>
             </Card>

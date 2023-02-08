@@ -25,8 +25,9 @@ const Payment = () => {
         <Radio.Group defaultValue={"微信"} onChange={onChange}>
           
       <Space style={{fontSize:"18px"}}  direction="vertical">
-        <Radio style={{fontSize:"18px"}} value={"微信"}>微信支付</Radio>
-        <Radio style={{padding:"20px 0",fontSize:"18px"}} value={"支付宝"}>支付宝支付</Radio>
+        <Radio style={{fontSize:"18px"}} value={"微信"}>微信</Radio>
+        <Radio style={{padding:"20px 0",fontSize:"18px"}} value={"支付宝"}>支付宝</Radio>
+        <Radio style={{padding:"20px 0",fontSize:"18px"}} value={"PayPal"}>PayPal</Radio>
       </Space>
 
     </Radio.Group>
