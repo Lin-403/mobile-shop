@@ -1364,3 +1364,22 @@ npmjs.com/package/react-paypal-button-v2
 
 ```
 
+# Morgan
+
+```js
+// 日志记录
+// server中
+import morgan from 'morgan'
+
+if (process.env.NODE_ENV === 'development') {
+app.use(morgan('dev'))
+}
+
+// 控制台打印
+[0] GET /api/orders 200 50.521 ms - 2964
+[0] GET /api/orders/63e34f71f34d7e14fe3bdb42 304 10.929 ms - -
+[0] PUT /api/orders/63e34f71f34d7e14fe3bdb42/deliver 200 19.363 ms - 729
+[0] GET /api/orders/63e34f71f34d7e14fe3bdb42 200 8.449 ms - 776
+[0] GET /api/orders 200 6.801 ms - 3004
+```
+

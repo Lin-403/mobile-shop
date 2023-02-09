@@ -1,15 +1,17 @@
 import {  Checkbox, message,Modal } from 'antd';
+import { PayPalButton } from 'react-paypal-button-v2'
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import {Button,Image,Container,Row,Col,Navbar,Nav, NavDropdown, ListGroup, Card} from "react-bootstrap";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+// import { PayPalButton } from 'react-paypal-button-v2'
 
-import { createOrder, getOrderDetails, payOrder } from '../actions/orderActions';
+import { createOrder, deliverOrder, getOrderDetails, payOrder } from '../actions/orderActions';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 import { v4 as uuidv4 } from 'uuid'
-import { ORDER_PAY_RESET } from '../contents/orderContents';
+import { ORDER_DELIVER_RESET, ORDER_PAY_RESET } from '../contents/orderContents';
 
 
 const OrderView = () => {
@@ -28,6 +30,10 @@ const OrderView = () => {
     const orderPay = useSelector((state) => state.orderPay)
     const { loading: loadingPay, error: errorPay, success: successPay } = orderPay
     
+    const orderDeliver = useSelector((state) => state.orderDeliver)
+    const { loading: loadingDeliver, success: successDeliver } = orderDeliver
+  
+
     const [image, setImage] = useState('')
     const [text, setText] = useState('请扫码')
 
@@ -87,16 +93,22 @@ const OrderView = () => {
         }
         document.body.appendChild(script)
       }
-      addPayPalScript()
       if(!userInfo){
         navigate("/login")
       }
         // console.log(params.id);
-        if(!order||order._id!==params.id || successPay){
+        if(!order||order._id!==params.id || successPay|| successDeliver){
           dispatch({type:ORDER_PAY_RESET}) 
+          dispatch({ type: ORDER_DELIVER_RESET })
           dispatch(getOrderDetails(params.id))
+        }else if (!order.isPaid) {
+          if (!window.paypal) {
+            addPayPalScript()
+          } else {
+            setSDK(true)
+          }
         }
-      },[dispatch,params,order,orderId,successPay])
+      },[dispatch,params,order,orderId,successPay,successDeliver])
 
 
       const [isModalOpen, setIsModalOpen] = useState(false);
@@ -119,6 +131,16 @@ const OrderView = () => {
         document.getElementsByClassName('qrcode')[0].innerHTML="";
        
       };
+        //创建paypal支付btn的函数
+      const successPaymentHandler = (paymentResult) => {
+        console.log(paymentResult)
+        dispatch(payOrder(orderId, paymentResult))
+      }
+      
+      //创建点击发货btn的函数
+      const deliverHandler = () => {
+        dispatch(deliverOrder(order))
+      }
     return (
         Object.keys(order).length===0?<Loader/>:error?message.error(error):<>
         <h2>订单号：{order._id}</h2>
@@ -137,7 +159,7 @@ const OrderView = () => {
             
                 {order.shippingAddress.province},{order.shippingAddress.city},{order.shippingAddress.address}</p>
                 <p><strong>收货人邮编：</strong>{order.shippingAddress.postalCode}</p>
-                {order.isDelivered?(<Message variant="success">发货时间：{order.DeliveredAt}</Message>):(
+                {order.isDelivered?(<Message variant="success">发货时间：{order.deliveredAt}</Message>):(
                     <Message variant="secondary">未发货</Message>
                 )}
             </ListGroup.Item>
@@ -196,7 +218,25 @@ const OrderView = () => {
                 <Col>$ {order.totalPrice}</Col>
                 </Row>
             </ListGroup.Item>
-            <ListGroup.Item className='d-grid gap-2'>
+            {
+              !order.isPaid && order.paymentMethod === 'PayPal' && (
+                <ListGroup.Item>
+                  {loadingPay && <Loader />}
+                  {!SDK ? (
+                    <Loader />
+                  ) : (
+                    <PayPalButton
+                      amount={order.totalPrice}
+                      onSuccess={successPaymentHandler}
+                    ></PayPalButton>
+                  )}
+                </ListGroup.Item>
+              )
+            }
+          
+            {
+              !order.isPaid && order.paymentMethod === '微信' &&(
+<ListGroup.Item className='d-grid gap-2'>
             <Button
                     type='button'
                     className='btn-block'
@@ -228,6 +268,23 @@ const OrderView = () => {
                       <hr/>
                     </Modal>
             </ListGroup.Item>
+              )
+            }
+             {/* 发货BTN */}
+             {userInfo &&
+                userInfo.isAdmin &&
+                order.isPaid &&
+                !order.isDelivered && (
+                  <ListGroup.Item className='d-grid gap-2'>
+                    <Button
+                      type='button'
+                      className='btn-block'
+                      onClick={deliverHandler}
+                    >
+                      发货
+                    </Button>
+                  </ListGroup.Item>
+                )}
             </ListGroup>
             </Card>
         </Col>

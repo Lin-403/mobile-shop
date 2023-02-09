@@ -87,7 +87,7 @@ const OrderListView = () => {
         dataIndex: 'isDelivered',
         render:(_,record)=>(
           record.isDelivered? <Tag color="green">
-          {record.isDelivered}
+          {record.deliveredAt}
         </Tag>:<Tag color="red">
           X
         </Tag>
