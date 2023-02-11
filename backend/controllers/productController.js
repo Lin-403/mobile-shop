@@ -2,12 +2,30 @@ import Product from "../models/productModel.js";
 import asyncHandler from "express-async-handler"
 
 //@desc    请求所有产品
-//@route   GET/api/products
+//@route   GET/api/products?keyword=${keyword}
 //@access  公开
-const getProducts=asyncHandler(async(req,res)=>{
-    const products=await Product.find({})
-    res.json(products)
+const getProducts = asyncHandler(async (req, res) => {
+  //每页展示的产品数量
+  const pageSize = 6
+  const page = Number(req.query.pageNumber) || 1
+  console.log(req.query)
+  const keyword = req.query.keyword
+    ? {
+        name: {
+          $regex: req.query.keyword,
+          $options: 'i',
+        },
+      }
+    : {}
+
+  //获取产品数量（包括符合条件的关键词）
+  const count = await Product.countDocuments({ ...keyword })
+  const products = await Product.find({ ...keyword })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1))
+  res.json({ products, page, pages: Math.ceil(count / pageSize) })
 })
+
 
 //@desc    请求单个产品
 //@route   GET/api/products/:id
@@ -136,5 +154,13 @@ export const createProductReview = asyncHandler(async (req, res) => {
     }
   })
   
+  //@desc    请求排名前3的产品
+//@route   GET/api/products/top
+//@access  公开
+export const getTopProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({}).sort({ price: -1 }).limit(3)
+
+  res.json(products)
+})
 
 export {getProducts,getProductById}

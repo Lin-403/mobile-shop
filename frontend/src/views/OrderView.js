@@ -108,7 +108,7 @@ const OrderView = () => {
             setSDK(true)
           }
         }
-      },[dispatch,params,order,orderId,successPay,successDeliver])
+      },[userInfo,dispatch,params,order,orderId,successPay,successDeliver])
 
 
       const [isModalOpen, setIsModalOpen] = useState(false);
@@ -219,7 +219,7 @@ const OrderView = () => {
                 </Row>
             </ListGroup.Item>
             {
-              !order.isPaid && order.paymentMethod === 'PayPal' && (
+              userInfo.email===order.user.email && !order.isPaid && order.paymentMethod === 'PayPal' && (
                 <ListGroup.Item>
                   {loadingPay && <Loader />}
                   {!SDK ? (
@@ -235,7 +235,7 @@ const OrderView = () => {
             }
           
             {
-              !order.isPaid && order.paymentMethod === '微信' &&(
+              userInfo.email===order.user.email && !order.isPaid && order.paymentMethod === '微信' &&(
 <ListGroup.Item className='d-grid gap-2'>
             <Button
                     type='button'

@@ -13,6 +13,7 @@ import { PRODUCT_CREATE_REVIEW_RESET, PRODUCT_DETAILS_RESET } from '../contents/
 import { Rate } from 'antd';
 import { Divider } from 'antd';
 import { Editor, Toolbar } from '@wangeditor/editor-for-react'
+import Meta from '../components/Meta'
 
 
 const ProductView = () => {
@@ -110,6 +111,8 @@ const ProductView = () => {
         </Link>
         {loading?<Loader/>:error?<Message variant="danger">{error}</Message>:(
             <>
+                       <Meta title={product.name} />
+
              <Row>
             <Col md={6}><Image src={product.image} alt={product.name} fluid/></Col>
             <Col md={3}>

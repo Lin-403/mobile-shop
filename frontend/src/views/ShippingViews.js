@@ -9,6 +9,8 @@ import { Placeholder } from 'react-bootstrap';
 import PlaceorderView from '../components/PlaceorderView';
 import { useNavigate } from 'react-router-dom';
 import { getOrderDetails } from '../actions/orderActions';
+import { ORDER_CREATE_RESET } from '../contents/orderContents';
+import { USER_DETAILS_RESET } from '../contents/userContents';
 
 
 
@@ -38,6 +40,10 @@ const ShippingViews = () => {
         navigate(`/order/${order._id}`)
         dispatch(getOrderDetails(order._id))
         message.success("订单已经创建成功")
+        dispatch({ type: ORDER_CREATE_RESET })
+      dispatch({
+        type: USER_DETAILS_RESET,
+      })
       }
   }
     const { token } = theme.useToken();

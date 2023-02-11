@@ -97,3 +97,14 @@ h4{
   .editor-content-view input[type="checkbox"] {
     margin-right: 5px;
   }
+  .search .ant-btn-primary {
+    background-color: #fefefe;
+    color: #78C2AD;
+    border-left: 1px solid #78C2AD;
+}
+/* .page-item{
+  margin-left: auto;
+} */
+/* li .page-item {
+  margin-left: auto;
+} */
